@@ -3,6 +3,7 @@ package parkingService;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import parkingCarRepository.AllCarsRepository;
 import parkingCarRepository.CarData;
@@ -14,11 +15,13 @@ import passType.WeekPass;
 @RequiredArgsConstructor
 public class ParkingService implements UserParkingService{
 	private final Scanner sc;
+	@NonNull
 	AllCarsRepository carRepository;
+	@NonNull
+	ArrayList<CarData> allCarsRepository;
 
 	@Override
 	public void registerCar() {
-		carRepository = AllCarsRepository.getInstance();
 		System.out.println("차량을 등록합니다.");
 		System.out.print("차량번호 입력: ");
 		String carNumber = sc.nextLine();
@@ -27,14 +30,17 @@ public class ParkingService implements UserParkingService{
 		System.out.print("요금제 선택: ");
 		PassType payType = choicePassType();
 		CarData carData = new CarData(carNumber, model, payType);
-		carRepository.setArrCarData(carData);
+		allCarsRepository.add(carData);
 		System.out.println("차량번호: " + carNumber + " 가 정상 등록되었습니다.");
 		
 	}
 
 	@Override
 	public void showInfo() {
-		ArrayList<CarData> allCarsRepository = carRepository.getArrCarData();
+		if(allCarsRepository.size() == 0) {
+			System.out.println("아직 등록된 차량이 없습니다.");
+			return;
+		}
 		for(int i = 0; i < allCarsRepository.size(); i++) {
 			System.out.println((i + 1) +". " + allCarsRepository.get(i));
 		}
@@ -42,11 +48,14 @@ public class ParkingService implements UserParkingService{
 
 	@Override
 	public void payPrice() {
+		if(allCarsRepository.size() == 0) {
+			System.out.println("아직 등록된 차량이 없습니다.");
+			return;
+		}
 		int price = 0;
 		System.out.print("차량번호 입력: ");
 		String carNumber = sc.nextLine();
-		carRepository = AllCarsRepository.getInstance();
-		ArrayList<CarData> allCarsRepository = carRepository.getArrCarData();
+		boolean noCar = true;
 		for(CarData carData : allCarsRepository) {
 			if(carData.getCarNumber().equals(carNumber)) {
 				PassType passType = carData.getPassType();
@@ -58,15 +67,20 @@ public class ParkingService implements UserParkingService{
 					else
 						price = (carData.getDays() - 1) * 24000;
 				}else if(passType instanceof WeekPass) {
-					if(carData.getDays() < 2)
+					if(carData.getDays() < 8)
 						price = 0;
 					else
 						price = (carData.getDays() - 7) * 24000;
 				}
+				allCarsRepository.remove(carData);
+				System.out.println("요금: " + price + "원");
+				noCar = false;
+				break;
 			}
-			break;
 		}
-		System.out.println("요금: " + price + "원");
+		if(noCar == true) {
+			System.out.println("해당 차량번호는 존재하지 않습니다.");
+		}
 	}
 
 	@Override
@@ -104,10 +118,10 @@ public class ParkingService implements UserParkingService{
 
 	@Override
 	public void nextDay() {
-		ArrayList<CarData> allCarsRepository = carRepository.getArrCarData();
+		if(allCarsRepository.size() == 0)
+			return;
 		for(CarData carData : allCarsRepository) {
 			carData.setDays(carData.getDays() + 1);
 		}
 	}
-
 }

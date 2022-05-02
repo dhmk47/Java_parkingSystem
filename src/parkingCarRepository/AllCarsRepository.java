@@ -2,6 +2,9 @@ package parkingCarRepository;
 
 import java.util.ArrayList;
 
+import lombok.Getter;
+
+@Getter
 public class AllCarsRepository {
 	private static AllCarsRepository instance;
 	private ArrayList<CarData> arrCarData;
@@ -15,13 +18,5 @@ public class AllCarsRepository {
 			instance = new AllCarsRepository();
 		}
 		return instance;
-	}
-
-	public ArrayList<CarData> getArrCarData() {
-		return arrCarData;
-	}
-
-	public void setArrCarData(CarData carData) {
-		this.arrCarData.add(carData);
 	}
 }
